@@ -45,24 +45,24 @@ func kwctlRun() *demo.Run {
 
 	r.Step(demo.S(
 		"Request with a letsencrypt-production issuer",
-	), demo.S("bat test_data/valid-ingress.json"))
+	), demo.S("bat test_data/production-ingress.json"))
 
 	r.Step(demo.S(
 		"Evaluate request with a letsencrypt-production issuer",
 	), demo.S(`kwctl run \
       --settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}' \
-      --request-path test_data/valid-ingress.json \
+      --request-path test_data/production-ingress.json \
       registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | jq`))
 
 	r.Step(demo.S(
 		"Request with a letsencrypt-staging issuer",
-	), demo.S("bat test_data/invalid-ingress.json"))
+	), demo.S("bat test_data/staging-ingress.json"))
 
 	r.Step(demo.S(
 		"Evaluate request with a letsencrypt-staging issuer",
 	), demo.S(`kwctl run \
       --settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}' \
-      --request-path test_data/invalid-ingress.json \
+      --request-path test_data/staging-ingress.json \
       registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | jq`))
 
 	return r
