@@ -1,0 +1,1 @@
+kwctl run -e gatekeeper --settings-json '{"labels":[{"key":"team"}]}' --request-path ../test_data/valid-ingress.json policy.wasm
