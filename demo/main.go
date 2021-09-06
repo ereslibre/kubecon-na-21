@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	demo "github.com/saschagrunert/demo"
@@ -92,7 +93,7 @@ func policyServerRun() *demo.Run {
 	), demo.S(`kwctl manifest \
       --type ClusterAdmissionPolicy \
       registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | \
-        yq '.metadata.name = "kubecon-na-21"' | \
+        yq '.metadata.name = "oss-21"' | \
         yq '.spec.settings.constrained_annotations."cert-manager.io/cluster-issuer" = "letsencrypt-production"'`))
 
 	r.Step(demo.S(
@@ -100,7 +101,7 @@ func policyServerRun() *demo.Run {
 	), demo.S(`kwctl manifest \
       --type ClusterAdmissionPolicy \
       registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | \
-        yq '.metadata.name = "kubecon-na-21"' | \
+        yq '.metadata.name = "oss-21"' | \
         yq '.spec.settings.constrained_annotations."cert-manager.io/cluster-issuer" = "letsencrypt-production"' | \
           kubectl apply -f -`))
 
@@ -114,10 +115,12 @@ func cleanupKwctl() error {
 
 func setupKubernetes() error {
 	cleanupKwctl()
+	exec.Command("kubectl", "create", "namespace", "oss-21").Run()
 	return nil
 }
 
 func cleanupKubernetes() error {
 	cleanupKwctl()
+	exec.Command("kubectl", "delete", "namespace", "oss-21").Run()
 	return nil
 }
