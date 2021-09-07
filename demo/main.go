@@ -19,7 +19,9 @@ func main() {
 func kwctlRun() *demo.Run {
 	r := demo.NewRun(
 		"Running policies with kwctl",
+		"",
 		"In this demo, we are going to:",
+		"",
 		"  - Find a policy that is of our interest",
 		"  - Pull the policy to the local store",
 		"  - Inspect the policy",
@@ -56,7 +58,7 @@ func kwctlRun() *demo.Run {
 
 	r.Step(demo.S(
 		"Evaluate request with a letsencrypt-production issuer",
-	), demo.S("kwctl run",
+	), demo.S("kwctl -v run",
 		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
 		"--request-path test_data/production-ingress.json",
 		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | jq"))
@@ -67,7 +69,7 @@ func kwctlRun() *demo.Run {
 
 	r.StepCanFail(demo.S(
 		"Evaluate request with a letsencrypt-staging issuer",
-	), demo.S("kwctl run",
+	), demo.S("kwctl -v run",
 		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
 		"--request-path test_data/staging-ingress.json",
 		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | jq"))
@@ -78,7 +80,9 @@ func kwctlRun() *demo.Run {
 func policyServerRun() *demo.Run {
 	r := demo.NewRun(
 		"Running policies on the policy-server",
+		"",
 		"In this demo, we are going to:",
+		"",
 		"  - Find a policy that is of our interest",
 		"  - Inspect a generated policy manifest",
 		"  - Apply a generated policy manifest",
@@ -107,7 +111,11 @@ func policyServerRun() *demo.Run {
 		"--type ClusterAdmissionPolicy",
 		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 |",
 		`yq '.metadata.name = "oss-21"' |`,
-		`yq '.spec.settings.constrained_annotations."cert-manager.io/cluster-issuer" = "letsencrypt-production"'`))
+		`yq '.spec.settings.constrained_annotations."cert-manager.io/cluster-issuer" = "letsencrypt-production"' |`,
+		`yq '.spec.rules[0].apiGroups = ["networking.k8s.io"]' |`,
+		`yq '.spec.rules[0].apiVersions = ["v1"]' |`,
+		`yq '.spec.rules[0].resources = ["ingresses"]'`,
+	))
 
 	r.Step(demo.S(
 		"Apply Kubernetes manifest",
@@ -117,7 +125,16 @@ func policyServerRun() *demo.Run {
 		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 |",
 		`yq '.metadata.name = "oss-21"' |`,
 		`yq '.spec.settings.constrained_annotations."cert-manager.io/cluster-issuer" = "letsencrypt-production"' |`,
+		`yq '.spec.rules[0].apiGroups = ["networking.k8s.io"]' |`,
+		`yq '.spec.rules[0].apiVersions = ["v1"]' |`,
+		`yq '.spec.rules[0].resources = ["ingresses"]' |`,
 		"kubectl apply -f -"))
+
+	r.Step(demo.S(
+		"Wait for our policy to be active",
+	), demo.S(
+		"kubectl wait --for=condition=PolicyServerWebhookConfigurationReconciled clusteradmissionpolicy oss-21",
+	))
 
 	r.Step(demo.S(
 		"Request with a letsencrypt-production issuer",
@@ -162,7 +179,7 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r.Step(demo.S(
 		"Run policy",
 	), demo.S(
-		"kwctl run -e gatekeeper",
+		"kwctl -v run -e gatekeeper",
 		`--settings-json '{"labels":[{"key":"team-owner"}]}'`,
 		"--request-path test_data/production-ingress.json",
 		"gatekeeper/policy.wasm",
@@ -179,11 +196,13 @@ func cleanupKwctl() error {
 func setupKubernetes() error {
 	cleanupKwctl()
 	exec.Command("kubectl", "create", "namespace", "oss-21").Run()
+	exec.Command("kubectl", "delete", "clusteradmissionpolicy", "--all").Run()
 	return nil
 }
 
 func cleanupKubernetes() error {
 	cleanupKwctl()
 	exec.Command("kubectl", "delete", "namespace", "oss-21").Run()
+	exec.Command("kubectl", "delete", "clusteradmissionpolicy", "--all").Run()
 	return nil
 }
