@@ -158,6 +158,13 @@ func policyServerRun() *demo.Run {
 func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r := demo.NewRun(
 		"Running a gatekeeper policy",
+		"",
+		"In this demo, we are going to:",
+		"",
+		"  - Inspect an existing gatekeeper policy from the gatekeeper-library",
+		"  - Build the policy for the Wasm target",
+		"  - Inspect and evaluate a request that is admitted",
+		"  - Inspect and evaluate a request that is rejected",
 	)
 
 	r.Step(demo.S(
@@ -177,11 +184,20 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	))
 
 	r.Step(demo.S(
-		"Run policy",
+		"Run policy with a request that is valid",
 	), demo.S(
-		"kwctl -v run -e gatekeeper",
-		`--settings-json '{"labels":[{"key":"team-owner"}]}'`,
-		"--request-path test_data/production-ingress.json",
+		"kwctl run -e gatekeeper",
+		`--settings-json '{"labels":[{"key":"owner-team"}]}'`,
+		"--request-path test_data/having-label-ingress.json",
+		"gatekeeper/policy.wasm",
+	))
+
+	r.StepCanFail(demo.S(
+		"Run policy with a request that is invalid",
+	), demo.S(
+		"kwctl run -e gatekeeper",
+		`--settings-json '{"labels":[{"key":"owner-team"}]}'`,
+		"--request-path test_data/missing-label-ingress.json",
 		"gatekeeper/policy.wasm",
 	))
 
