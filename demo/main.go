@@ -124,7 +124,7 @@ func policyServer(r *demo.Run, skipPull SkipPullOption) {
 	), demo.S("kwctl manifest",
 		"--type ClusterAdmissionPolicy",
 		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
-		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | yq",
+		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | bat --language yaml",
 	))
 
 	r.Step(demo.S(
@@ -144,19 +144,19 @@ func policyServer(r *demo.Run, skipPull SkipPullOption) {
 
 	r.Step(demo.S(
 		"Ingress with a letsencrypt-production issuer",
-	), demo.S("bat test_data/production-ingress-resource.json"))
+	), demo.S("bat test_data/production-ingress-resource.yaml"))
 
 	r.Step(demo.S(
 		"Deploy an Ingress resource with a letsencrypt-production issuer",
-	), demo.S("kubectl apply -f test_data/production-ingress-resource.json"))
+	), demo.S("kubectl apply -f test_data/production-ingress-resource.yaml"))
 
 	r.Step(demo.S(
 		"Ingress with a letsencrypt-staging issuer",
-	), demo.S("bat test_data/staging-ingress-resource.json"))
+	), demo.S("bat test_data/staging-ingress-resource.yaml"))
 
 	r.StepCanFail(demo.S(
 		"Deploy an Ingress resource with a letsencrypt-staging issuer",
-	), demo.S("kubectl apply -f test_data/staging-ingress-resource.json"))
+	), demo.S("kubectl apply -f test_data/staging-ingress-resource.yaml"))
 }
 
 func gatekeeperPolicyBuildAndRun() *demo.Run {
