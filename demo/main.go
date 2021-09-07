@@ -12,7 +12,7 @@ func main() {
 	d := demo.New()
 	d.Add(kwctlRun(), "kwctl demo", "kwctl demo")
 	d.Add(policyServerRun(), "policy-server demo", "policy-server demo")
-	d.Add(gatekeeperPolicyRun(), "gatekeeper policy demo", "gatekeeper policy demo")
+	d.Add(gatekeeperPolicyBuildAndRun(), "gatekeeper policy build and run demo", "gatekeeper policy build and run demo")
 	d.Run()
 }
 
@@ -110,7 +110,7 @@ func policyServerRun() *demo.Run {
 	return r
 }
 
-func gatekeeperPolicyRun() *demo.Run {
+func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r := demo.NewRun(
 		"Running a gatekeeper policy",
 	)
@@ -134,7 +134,10 @@ func gatekeeperPolicyRun() *demo.Run {
 	r.Step(demo.S(
 		"Run policy",
 	), demo.S(
-		`kwctl run -e gatekeeper --settings-json '{"labels":[{"key":"team"}]}' --request-path ../test_data/valid-ingress.json policy.wasm"`,
+		"kwctl run -e gatekeeper",
+		`--settings-json '{"labels":[{"key":"team-owner"}]}'`,
+		"--request-path test_data/production-ingress.json",
+		"gatekeeper/policy.wasm",
 	))
 
 	return r
