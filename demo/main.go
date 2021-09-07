@@ -19,6 +19,12 @@ func main() {
 func kwctlRun() *demo.Run {
 	r := demo.NewRun(
 		"Running policies with kwctl",
+		"In this demo, we are going to:",
+		"  - Find a policy that is of our interest",
+		"  - Pull the policy to the local store",
+		"  - Inspect the policy",
+		"  - Inspect and evaluate a request that is admitted",
+		"  - Inspect and evaluate a request that is rejected",
 	)
 
 	r.Setup(cleanupKwctl)
@@ -59,7 +65,7 @@ func kwctlRun() *demo.Run {
 		"Request with a letsencrypt-staging issuer",
 	), demo.S("bat test_data/staging-ingress.json"))
 
-	r.Step(demo.S(
+	r.StepCanFail(demo.S(
 		"Evaluate request with a letsencrypt-staging issuer",
 	), demo.S("kwctl run",
 		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
@@ -72,6 +78,12 @@ func kwctlRun() *demo.Run {
 func policyServerRun() *demo.Run {
 	r := demo.NewRun(
 		"Running policies on the policy-server",
+		"In this demo, we are going to:",
+		"  - Find a policy that is of our interest",
+		"  - Inspect a generated policy manifest",
+		"  - Apply a generated policy manifest",
+		"  - Inspect and evaluate a request that is admitted",
+		"  - Inspect and evaluate a request that is rejected",
 	)
 
 	r.Setup(setupKubernetes)
@@ -106,6 +118,22 @@ func policyServerRun() *demo.Run {
 		`yq '.metadata.name = "oss-21"' |`,
 		`yq '.spec.settings.constrained_annotations."cert-manager.io/cluster-issuer" = "letsencrypt-production"' |`,
 		"kubectl apply -f -"))
+
+	r.Step(demo.S(
+		"Request with a letsencrypt-production issuer",
+	), demo.S("bat test_data/production-ingress.json"))
+
+	r.Step(demo.S(
+		"Deploy an Ingress resource with a letsencrypt-production issuer",
+	), demo.S("jq .object test_data/production-ingress.json | kubectl apply -f -"))
+
+	r.Step(demo.S(
+		"Request with a letsencrypt-staging issuer",
+	), demo.S("bat test_data/staging-ingress.json"))
+
+	r.StepCanFail(demo.S(
+		"Deploy an Ingress resource with a letsencrypt-staging issuer",
+	), demo.S("jq .object test_data/staging-ingress.json | kubectl apply -f -"))
 
 	return r
 }
