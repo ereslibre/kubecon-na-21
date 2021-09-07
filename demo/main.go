@@ -46,10 +46,6 @@ func kwctlRun() *demo.Run {
 
 func kwctl(r *demo.Run) {
 	r.Step(demo.S(
-		"Search for a policy in hub.kubewarden.io",
-	), nil)
-
-	r.Step(demo.S(
 		"List policies",
 	), demo.S("kwctl policies"))
 
