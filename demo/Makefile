@@ -1,9 +1,9 @@
 .PHONY: oss
 oss:
-	clear
+	@clear
 	@go run . --oss
 
 .PHONY: gatekeeper
 gatekeeper:
-	clear
+	@clear
 	@go run . --gatekeeper
