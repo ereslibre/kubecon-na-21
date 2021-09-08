@@ -77,7 +77,7 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r.Step(demo.S(
 		"Run policy: accept the request",
 	), demo.S(
-		"kwctl run -e gatekeeper",
+		"kwctl -v run -e gatekeeper",
 		`--settings-json '{"reject":false}'`,
 		"--request-path test_data/empty-request.json",
 		"gatekeeper/policy.wasm | jq",
@@ -86,8 +86,8 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r.Step(demo.S(
 		"Run policy: reject the request",
 	), demo.S(
-		"kwctl run -e gatekeeper",
-		`--settings-json '{"reject":true, "rejection_message": "this is going to be rejected, no matter what"}'`,
+		"kwctl -v run -e gatekeeper",
+		`--settings-json '{"reject":true, "rejection_message": "this is the rejection message itself"}'`,
 		"--request-path test_data/empty-request.json",
 		"gatekeeper/policy.wasm | jq",
 	))

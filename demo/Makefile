@@ -1,7 +1,7 @@
-.PHONY: oss
-kubecon-na:
+.PHONY: policy-server
+policy-server:
 	@clear
-	@go run . --kubecon-na
+	@go run . --policy-server
 
 .PHONY: gatekeeper
 gatekeeper:
