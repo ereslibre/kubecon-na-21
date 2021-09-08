@@ -165,13 +165,9 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	)
 
 	r.Step(demo.S(
-		"Show policy",
-	), demo.S("bat gatekeeper/requiredlabels.rego"))
-
-	r.Step(demo.S(
 		"Build policy",
 	), demo.S(
-		"opa build -t wasm -e k8srequiredlabels/violation -o gatekeeper/bundle.tar.gz gatekeeper/requiredlabels.rego",
+		"opa build -t wasm -e echo/violation -o gatekeeper/bundle.tar.gz gatekeeper/echo.rego",
 	))
 
 	r.Step(demo.S(
@@ -181,32 +177,20 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	))
 
 	r.Step(demo.S(
-		"Show  a request that is valid -- contains an 'owner-team' key",
-	), demo.S(
-		"bat test_data/having-label-ingress.json",
-	))
-
-	r.Step(demo.S(
-		"Run policy with a request that is valid",
+		"Run policy: accept the request",
 	), demo.S(
 		"kwctl run -e gatekeeper",
-		`--settings-json '{"labels":[{"key":"owner-team"}]}'`,
+		`--settings-json '{"reject":false}'`,
 		"--request-path test_data/having-label-ingress.json",
 		"gatekeeper/policy.wasm | jq",
 	))
 
 	r.Step(demo.S(
-		"Show a request that is invalid -- does not contain an 'owner-team' key",
-	), demo.S(
-		"bat test_data/missing-label-ingress.json",
-	))
-
-	r.StepCanFail(demo.S(
-		"Run policy with a request that is invalid",
+		"Run policy: reject the request",
 	), demo.S(
 		"kwctl run -e gatekeeper",
-		`--settings-json '{"labels":[{"key":"owner-team"}]}'`,
-		"--request-path test_data/missing-label-ingress.json",
+		`--settings-json '{"reject":true, "rejection_message": "this is going to be rejected, no matter what"}'`,
+		"--request-path test_data/having-label-ingress.json",
 		"gatekeeper/policy.wasm | jq",
 	))
 
@@ -221,14 +205,14 @@ func cleanupKwctl() error {
 func setupKubernetes() error {
 	cleanupKwctl()
 	cleanupKubernetes()
-	exec.Command("kubectl", "create", "namespace", "oss-21").Run()
+	exec.Command("kubectl", "create", "namespace", "kubecon-na-21").Run()
 	exec.Command("kubectl", "delete", "clusteradmissionpolicy", "--all").Run()
 	return nil
 }
 
 func cleanupKubernetes() error {
 	cleanupKwctl()
-	exec.Command("kubectl", "delete", "namespace", "oss-21").Run()
+	exec.Command("kubectl", "delete", "namespace", "kubecon-na-21").Run()
 	exec.Command("kubectl", "delete", "clusteradmissionpolicy", "--all").Run()
 	return nil
 }
