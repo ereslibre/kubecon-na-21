@@ -79,7 +79,7 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	), demo.S(
 		"kwctl run -e gatekeeper",
 		`--settings-json '{"reject":false}'`,
-		"--request-path test_data/having-label-ingress.json",
+		"--request-path test_data/empty-request.json",
 		"gatekeeper/policy.wasm | jq",
 	))
 
@@ -88,7 +88,7 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	), demo.S(
 		"kwctl run -e gatekeeper",
 		`--settings-json '{"reject":true, "rejection_message": "this is going to be rejected, no matter what"}'`,
-		"--request-path test_data/having-label-ingress.json",
+		"--request-path test_data/empty-request.json",
 		"gatekeeper/policy.wasm | jq",
 	))
 
