@@ -70,12 +70,7 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r.Step(demo.S(
 		"Build policy",
 	), demo.S(
-		"opa build -t wasm -e echo/violation -o gatekeeper/bundle.tar.gz gatekeeper/echo.rego",
-	))
-
-	r.Step(demo.S(
-		"Extract policy",
-	), demo.S(
+		"opa build -t wasm -e echo/violation -o gatekeeper/bundle.tar.gz gatekeeper/echo.rego &&",
 		"tar -C gatekeeper -xf gatekeeper/bundle.tar.gz /policy.wasm",
 	))
 
