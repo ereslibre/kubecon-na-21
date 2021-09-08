@@ -1,0 +1,20 @@
+apiVersion: policies.kubewarden.io/v1alpha2
+kind: ClusterAdmissionPolicy
+metadata:
+  name: letsencrypt-production-ingress
+spec:
+  module: "registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0"
+  settings:
+    constrained_annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-production
+  rules:
+    - apiGroups:
+        - networking.k8s.io
+      apiVersions:
+        - v1
+      resources:
+        - ingresses
+      operations:
+        - CREATE
+        - UPDATE
+  mutating: false

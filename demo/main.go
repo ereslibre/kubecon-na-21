@@ -10,78 +10,9 @@ import (
 
 func main() {
 	d := demo.New()
-	d.Add(oss21Run(), "oss 21 demo", "oss 21 demo")
-	d.Add(kwctlRun(), "kwctl demo", "kwctl demo")
 	d.Add(policyServerRun(), "policy-server demo", "policy-server demo")
 	d.Add(gatekeeperPolicyBuildAndRun(), "gatekeeper policy build and run demo", "gatekeeper policy build and run demo")
 	d.Run()
-}
-
-func oss21Run() *demo.Run {
-	r := demo.NewRun(
-		"Running policies with kwctl and policy-server",
-	)
-
-	r.Setup(setupKubernetes)
-	r.Cleanup(cleanupKubernetes)
-
-	kwctl(r)
-	policyServer(r, SkipPull)
-
-	return r
-}
-
-func kwctlRun() *demo.Run {
-	r := demo.NewRun(
-		"Running policies with kwctl",
-	)
-
-	r.Setup(cleanupKwctl)
-	r.Cleanup(cleanupKwctl)
-
-	kwctl(r)
-
-	return r
-}
-
-func kwctl(r *demo.Run) {
-	r.Step(demo.S(
-		"List policies",
-	), demo.S("kwctl policies"))
-
-	r.Step(demo.S(
-		"Pull a policy",
-	), demo.S("kwctl pull registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0"))
-
-	r.Step(demo.S(
-		"List policies",
-	), demo.S("kwctl policies"))
-
-	r.Step(demo.S(
-		"Inspect policy",
-	), demo.S("kwctl inspect registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0"))
-
-	r.Step(demo.S(
-		"Request with a letsencrypt-production issuer",
-	), demo.S("bat test_data/production-ingress.json"))
-
-	r.Step(demo.S(
-		"Evaluate request with a letsencrypt-production issuer",
-	), demo.S("kwctl -v run",
-		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
-		"--request-path test_data/production-ingress.json",
-		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | jq"))
-
-	r.Step(demo.S(
-		"Request with a letsencrypt-staging issuer",
-	), demo.S("bat test_data/staging-ingress.json"))
-
-	r.StepCanFail(demo.S(
-		"Evaluate request with a letsencrypt-staging issuer",
-	), demo.S("kwctl -v run",
-		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
-		"--request-path test_data/staging-ingress.json",
-		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | jq"))
 }
 
 func policyServerRun() *demo.Run {
@@ -92,54 +23,26 @@ func policyServerRun() *demo.Run {
 	r.Setup(setupKubernetes)
 	r.Cleanup(cleanupKubernetes)
 
-	policyServer(r, NoSkipPull)
+	policyServer(r)
 
 	return r
 }
 
-type SkipPullOption int
-
-const (
-	NoSkipPull = iota
-	SkipPull
-)
-
-func policyServer(r *demo.Run, skipPull SkipPullOption) {
-	if skipPull == NoSkipPull {
-		r.Step(demo.S(
-			"List policies",
-		), demo.S("kwctl policies"))
-
-		r.Step(demo.S(
-			"Pull a policy",
-		), demo.S("kwctl pull registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0"))
-
-		r.Step(demo.S(
-			"List policies",
-		), demo.S("kwctl policies"))
-	}
+func policyServer(r *demo.Run) {
+	r.Step(demo.S(
+		"Show cluster admission policy",
+	), demo.S("bat test_data/letsencrypt-production-manifest.yaml"))
 
 	r.Step(demo.S(
-		"Generate Kubernetes manifest",
-	), demo.S("kwctl manifest",
-		"--type ClusterAdmissionPolicy",
-		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
-		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 | bat --language yaml",
-	))
-
-	r.Step(demo.S(
-		"Apply Kubernetes manifest",
+		"Deploy cluster admission policy",
 	), demo.S(
-		"kwctl manifest",
-		"--type ClusterAdmissionPolicy",
-		`--settings-json '{"constrained_annotations": {"cert-manager.io/cluster-issuer": "letsencrypt-production"}}'`,
-		"registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0 |",
-		"kubectl apply -f -"))
+		"kubectl apply -f test_data/letsencrypt-production-manifest.yaml",
+	))
 
 	r.Step(demo.S(
 		"Wait for our policy to be active",
 	), demo.S(
-		"kubectl wait --for=condition=PolicyServerWebhookConfigurationReconciled clusteradmissionpolicy generated-policy",
+		"kubectl wait --for=condition=PolicyServerWebhookConfigurationReconciled clusteradmissionpolicy letsencrypt-production-ingress",
 	))
 
 	r.Step(demo.S(
