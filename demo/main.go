@@ -30,6 +30,10 @@ func policyServerRun() *demo.Run {
 
 func policyServer(r *demo.Run) {
 	r.Step(demo.S(
+		"The problem and the safe-annotations policy",
+	), nil)
+
+	r.Step(demo.S(
 		"Show cluster admission policy",
 	), demo.S("bat test_data/letsencrypt-production-manifest.yaml"))
 
