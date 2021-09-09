@@ -66,6 +66,9 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 	r := demo.NewRun(
 		"Running a gatekeeper policy",
 	)
+	r.Step(demo.S(
+		"The echo policy",
+	), nil)
 
 	r.Step(demo.S(
 		"Build policy",
