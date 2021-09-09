@@ -74,10 +74,12 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 		"tar -C gatekeeper -xf gatekeeper/bundle.tar.gz /policy.wasm",
 	))
 
+	r.Step(demo.S("kwctl: the Kubewarden go-to tool"), nil)
+
 	r.Step(demo.S(
 		"Run policy: accept the request",
 	), demo.S(
-		"kwctl -v run -e gatekeeper",
+		"kwctl run -e gatekeeper",
 		`--settings-json '{"reject":false}'`,
 		"--request-path test_data/empty-request.json",
 		"gatekeeper/policy.wasm | jq",
@@ -85,6 +87,15 @@ func gatekeeperPolicyBuildAndRun() *demo.Run {
 
 	r.Step(demo.S(
 		"Run policy: reject the request",
+	), demo.S(
+		"kwctl run -e gatekeeper",
+		`--settings-json '{"reject":true, "rejection_message": "this is the rejection message itself"}'`,
+		"--request-path test_data/empty-request.json",
+		"gatekeeper/policy.wasm | jq",
+	))
+
+	r.Step(demo.S(
+		"Run policy: reject the request -- now in verbosity mode",
 	), demo.S(
 		"kwctl -v run -e gatekeeper",
 		`--settings-json '{"reject":true, "rejection_message": "this is the rejection message itself"}'`,
