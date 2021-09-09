@@ -16,5 +16,4 @@ spec:
         - ingresses
       operations:
         - CREATE
-        - UPDATE
   mutating: false
